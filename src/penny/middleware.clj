@@ -1,4 +1,4 @@
-(ns penny.middleware.exporter
+(ns penny.middleware
   (:require [quil.core :as q]))
 
 (defn ^:private zp
