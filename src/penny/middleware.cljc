@@ -21,12 +21,6 @@
        "-"
        (zp (q/seconds) 2)))
 
-(defn ^:private  mm-to-px [mm]
-  (/ (* mm 90) 25.4))
-
-(def ^:private a4-w (mm-to-px 297))
-(def ^:private a4-h (mm-to-px 210))
-
 (def ^:private  mpressed (atom false))
 
 (defmacro ^:private do-on-click [action]
@@ -36,13 +30,13 @@
        ~action)
      (reset! mpressed false)))
 
-(defmacro ^:private export [draw]
+(defmacro export [draw]
   `(let [time# (current-time)
-         gr# (q/create-graphics a4-w a4-h :svg (str "output/svg/" time# ".svg"))]
-     (q/save-frame (str "output/png/" time# ".png"))
+         gr# (q/create-graphics (q/width) (q/height) :svg (str "output/svg/" time# ".svg"))]
+     (q/save (str "output/png/" time# ".png"))
      (q/with-graphics gr#
-       (q/with-translation [(/ (- a4-w (q/width)) 2) (/ (- a4-h (q/height)) 2)]
-         ~draw)
+       (q/no-fill)
+       ~draw
        (.dispose gr#))))
 
 (defmacro ^:private export-on-click [draw]
@@ -52,5 +46,7 @@
   (let [draw (:draw options)]
     (assoc options
            :draw (fn [& args]
+                   (q/background 255)
+                   (q/no-fill)
                    (apply draw args)
                    (export-on-click (apply draw args))))))
