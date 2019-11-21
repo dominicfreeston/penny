@@ -120,6 +120,8 @@
                  (q/background 255)
                  (q/stroke 0)
                  (q/no-fill)
+                 (q/push-matrix)
                  ((:draw options) (last (:history state)))
+                 (q/pop-matrix)
                  (draw-time-travel-UI state))
          :update (time-travel-update options)))
