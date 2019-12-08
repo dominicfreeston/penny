@@ -1,6 +1,8 @@
 (ns penny.lines
   (:require [penny.vectormath :as v]))
 
+;; Helpers
+
 (defn- det
   [a b c d]
   (- (* a d) (* b c)))
@@ -19,6 +21,27 @@
   (let [a (dot segment [(first segment) point])
         b (dot segment segment)]
     (not (or (< a 0) (> a b)))))
+
+(defn- unit
+  "Unit vector of a line/segment"
+  [[p1 p2]]
+  (v/norm (v/sub p2 p1)))
+
+;; Splitting
+
+(defn points-along-line
+  "Returns an infinite sequence of all the points on a line"
+  [start vec gap]
+  (let [increment (v/mult (v/norm vec) gap)]
+    (iterate #(v/add increment %) start)))
+
+(defn points-in-segment
+  "Return points in a segment that are gap apart; resulting segment may be shorter."
+  [segment gap]
+  (take-while (partial contains-point? segment)
+              (points-along-line (first segment) (unit segment) gap)))
+
+;; Crossing
 
 (defn cross-point-ll
   ;; http://mathworld.wolfram.com/Line-LineIntersection.html
