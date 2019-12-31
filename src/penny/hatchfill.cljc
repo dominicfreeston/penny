@@ -19,10 +19,10 @@
    (apply max (map y shape))])
 
 (defn- box
-  "Returns the bounding box of the shape"
+  "Returns the bounding box of the shape (slightly enlarged)"
   [shape]
-  (let [tl (top-left shape)
-        br (bot-right shape)]
+  (let [tl (v/add [-1 -1] (top-left shape))
+        br (v/add [1 1] (bot-right shape))]
     [tl [(x tl) (y br)] br [(x br) (y tl)]]))
 
 (defn- segment-goes-through-shape? [shape segment]
@@ -78,6 +78,20 @@
   (->> (line-cross-points-through-shape shape line)
        (partition 2 1)
        (filter (partial segment-in-shape? shape))))
+
+(defn- crop-segment-to-shape [shape segment]
+  (let [limits (segments-in-shape shape segment)]
+    (->> limits
+         (map (partial l/crop-segments segment))
+         (filter #(= 2 (count %))))))
+
+;; They're called lines in the public API but they're really segments...
+(defn crop-lines-to-shape
+  "Return a list of lines cropped to fit within the shape"
+  [shape lines]
+  (mapcat (partial crop-segment-to-shape shape) lines))
+
+;; Fill lines
 
 (defn fill-lines
   "Returns a list of fill-lines defined by vec going through shape, gap apart"

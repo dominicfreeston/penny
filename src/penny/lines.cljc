@@ -41,6 +41,15 @@
   (take-while (partial contains-point? segment)
               (points-along-line (first segment) (unit segment) gap)))
 
+;; Overlapping
+
+(defn crop-segments
+  "Returns a segment that is the overlapping part of both segments,
+  assuming both segments are on the same line"
+  [segment1 segment2]
+  (distinct (concat (filter (partial contains-point? segment1) segment2)
+                    (filter (partial contains-point? segment2) segment1))))
+
 ;; Crossing
 
 (defn cross-point-ll
