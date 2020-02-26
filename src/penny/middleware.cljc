@@ -9,7 +9,7 @@
       (recur (str "0" s))
       s)))
 
-(defn ^:private current-time []
+(defn current-time []
   (str (q/year)
        "-"
        (zp (q/month) 2)

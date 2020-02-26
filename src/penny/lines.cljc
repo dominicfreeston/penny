@@ -1,6 +1,11 @@
 (ns penny.lines
   (:require [penny.vectormath :as v]))
 
+;; Lines/segments are represented by pairs of points
+;; Where points are vectors of the form [x y]
+;; When treated as lines, they are considered to be infinite
+;; and so the distance between them in inconsequential
+
 ;; Helpers
 
 (defn- det
@@ -22,7 +27,18 @@
         b (dot segment segment)]
     (not (or (< a 0) (> a b)))))
 
-(defn- unit
+(defn point-on-line? [line point]
+  (let [slope (fn [[[x1 y1] [x2 y2]]]
+                (let [denom (- x2 x1)]
+                  (if (zero? denom)
+                    false
+                    (/ (- y2 y1) denom))))]
+    (= (slope line) (slope [(first line) point]))))
+
+(defn point-on-segment? [segment point]
+  (and (point-on-line? segment point) (contains-point? segment point)))
+
+(defn unit
   "Unit vector of a line/segment"
   [[p1 p2]]
   (v/norm (v/sub p2 p1)))
@@ -54,7 +70,7 @@
 
 (defn cross-point-ll
   ;; http://mathworld.wolfram.com/Line-LineIntersection.html
-  "Calculates the cross points of two (infinite) lines (if it exists)"
+  "Calculates whether and were two (infinite) lines cross"
   [[[x1 y1] [x2 y2]] [[x3 y3] [x4 y4]]]
   (let [denom (det (- x1 x2) (- y1 y2)
                    (- x3 x4) (- y3 y4))]
