@@ -99,7 +99,7 @@
        (partition 2 1)
        (filter (partial segment-in-shape? shape))))
 
-(defn crop-segment-to-shape
+(defn- crop-segment-to-shape
   "Returns a list of segments that fit within the shape and
   overlap with the original segment. If the segment fits within
   the shape, the list contains only the original segment."
@@ -114,3 +114,43 @@
   The returned list may contain more or fewer segments than the original."
   [shape segments]
   (mapcat (partial crop-segment-to-shape shape) segments))
+
+;; Fill Lines
+;;;;;;;;;;;;;
+
+(defn- parallel-lines
+  "Find all lines that go through shape, at distance gap apart, in direction vec"
+  [shape vec gap offset]
+  (let [unit (v/norm vec)
+        perp1 [(- (y unit)) (x unit)]
+        perp2 [(y unit) (- (x unit))]
+        box (box shape)
+        origin (v/add (first box) offset)
+        test-fn (fn [line] ;; test if lines goes through the box
+                  (some #(l/cross-point-ls line %)
+                        (shape-to-segments box)))
+        lines-fn (fn [dir]
+                   (take-while test-fn
+                               (rest (map #(vector % (v/add % unit))
+                                          (l/points-along-line origin dir gap)))))]
+    (concat (reverse (lines-fn perp1))
+            (filter test-fn [[origin (v/add origin unit)]])
+            (lines-fn perp2))))
+
+(defn fill-lines
+  "Returns a list of fill-lines defined by vec going through shape, gap apart"
+  ([shape vec gap]
+   (fill-lines shape vec gap [0 0]))
+  ([shape vec gap offset]
+   (mapcat (partial segments-in-shape shape)
+           (parallel-lines shape vec gap offset))))
+
+(defn h-lines
+  "Returns a list of horizontal fill-lines gap apart"
+  [shape gap]
+  (fill-lines shape [1 0] gap))
+
+(defn v-lines
+  "Returns a list of vertical fill-lines gap apart"
+  [shape gap]
+  (fill-lines shape [0 1] gap))
