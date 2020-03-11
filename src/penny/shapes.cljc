@@ -32,12 +32,14 @@
   ;; Once upon a time this was enlarged by 1px
   ;; but that seemed wrong an assumption to make everywhere
   ;; However there may be some edge-cases no longer handled
-  [shape]
-  (let [x1 (min-x shape)
-        y1 (min-y shape)
-        x2 (max-x shape)
-        y2 (max-y shape)]
-    [[x1 y1] [x2 y1] [x2 y2] [x1 y2]]))
+  ([shape]
+   (box shape [0 0]))
+  ([shape insets]
+   (let [x1 (+ (min-x shape) (x insets))
+         y1 (+ (min-y shape) (y insets))
+         x2 (- (max-x shape) (x insets))
+         y2 (- (max-y shape) (y insets))]
+     [[x1 y1] [x2 y1] [x2 y2] [x1 y2]])))
 
 (defn- segment-goes-through-shape? [shape segment]
   (boolean (some #(l/cross-point-ss segment %) (shape-to-segments shape))))
@@ -70,7 +72,7 @@
     (or (some #(l/point-on-segment? % p) (shape-to-segments shape))
         (let [cross-lines (map #(vector p (v/add p %))
                                [[0 1] [1 0]])
-              cross-points (mapcat #(line-cross-points-through-shape (box shape) %)
+              cross-points (mapcat #(line-cross-points-through-shape (box shape [-1 -1]) %)
                                    cross-lines)
               cross-segments (map #(vector p %)
                                   cross-points)]
