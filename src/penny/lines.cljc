@@ -8,6 +8,9 @@
 
 ;; Helpers
 
+(def ^:private x first)
+(def ^:private y second)
+
 (defn- det
   [a b c d]
   (- (* a d) (* b c)))
@@ -27,13 +30,19 @@
         b (dot segment segment)]
     (not (or (< a 0) (> a b)))))
 
+(defn point-on-line-side
+  "Returns if point p is
+  left of line  >0
+  on the line   =0
+  right of line <0"
+  [[p0 p1] p2]
+  (- (* (- (x p1) (x p0))
+        (- (y p2) (y p0)))
+     (* (- (x p2) (x p0))
+        (- (y p1) (y p0)))))
+
 (defn point-on-line? [line point]
-  (let [slope (fn [[[x1 y1] [x2 y2]]]
-                (let [denom (- x2 x1)]
-                  (if (zero? denom)
-                    false
-                    (/ (- y2 y1) denom))))]
-    (= (slope line) (slope [(first line) point]))))
+  (= 0 (point-on-line-side line point)))
 
 (defn point-on-segment? [segment point]
   (and (point-on-line? segment point) (contains-point? segment point)))

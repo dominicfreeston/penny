@@ -60,24 +60,28 @@
            (< (y p) (min-y box))
            (> (y p) (max-y box)))))
 
-(defn point-in-shape?
-  "Returns whether a point is inside the shape."
-  ;; It does so by projecting segments in all four cardinal directions
-  ;; within the bounding box and then checking they all intersect with the shape
-  ;; For optimisation, it first checks whether the point is inside the bounding box
-  ;; NB: Don't think this is quite valid for all shapes, might need to check it hits
-  ;; the shape an odd number of times before hitting the box or something...
+(defn- winding-number
+  ;; http://geomalgorithms.com/a03-_inclusion.html#wn_PnPoly()
   [shape p]
-  (if (point-in-box? shape p)
-    (or (some #(l/point-on-segment? % p) (shape-to-segments shape))
-        (let [cross-lines (map #(vector p (v/add p %))
-                               [[0 1] [1 0]])
-              cross-points (mapcat #(line-cross-points-through-shape (box shape [-1 -1]) %)
-                                   cross-lines)
-              cross-segments (map #(vector p %)
-                                  cross-points)]
-          (every? (partial segment-goes-through-shape? shape) cross-segments)))
-    false))
+  (reduce 
+   (fn [wn [v1 v2]]
+     (if (<= (y v1) (y p))
+       (if (and (> (y v2) (y p))
+                (> (l/point-on-line-side [v1 v2] p) 0))
+         (inc wn)
+         wn)
+       (if (and (<= (y v2) (y p))
+                (< (l/point-on-line-side [v1 v2] p) 0))
+         (dec wn)
+         wn)))
+   0
+   (shape-to-segments shape)))
+
+(defn point-in-shape?
+  "Returns whether a point is inside the shape.
+  Being on an edge is considered to be inside the shape."
+  [shape p] (or (not= 0 (winding-number shape p))
+                (some #(l/point-on-segment? % p) (shape-to-segments shape))))
 
 ;; Cropping Line/Segment to fit inside a shape
 
@@ -99,7 +103,7 @@
        (partition 2 1)
        (filter (partial segment-in-shape? shape))))
 
-(defn- crop-segment-to-shape
+(defn crop-segment-to-shape
   "Returns a list of segments that fit within the shape and
   overlap with the original segment. If the segment fits within
   the shape, the list contains only the original segment."
