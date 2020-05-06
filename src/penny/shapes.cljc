@@ -41,9 +41,6 @@
          y2 (- (max-y shape) (y insets))]
      [[x1 y1] [x2 y1] [x2 y2] [x1 y2]])))
 
-(defn- segment-goes-through-shape? [shape segment]
-  (boolean (some #(l/cross-point-ss segment %) (shape-to-segments shape))))
-
 (defn- line-cross-points-through-shape
   "Returns a list of all the points where the line intersects with shape"
   [shape line]
@@ -103,15 +100,25 @@
        (partition 2 1)
        (filter (partial segment-in-shape? shape))))
 
+(defn- segment-goes-through-box?
+  "Returns whether the segment is inside or crosses the bounding box"
+  [shape segment]
+  (or (some #(point-in-box? shape %) segment)
+      ;; Can probably speed this up since we don't care about actual cross point
+      ;; https://stackoverflow.com/questions/4977491/determining-if-two-line-segments-intersect/4977569#4977569
+      (some #(l/cross-point-ss segment %) (shape-to-segments (box shape)))))
+
 (defn crop-segment-to-shape
   "Returns a list of segments that fit within the shape and
   overlap with the original segment. If the segment fits within
   the shape, the list contains only the original segment."
   [shape segment]
-  (let [limits (segments-in-shape shape segment)]
-    (->> limits
-         (map (partial l/crop-segments segment))
-         (filter #(= 2 (count %))))))
+  (if (segment-goes-through-box? shape segment)
+    (let [limits (segments-in-shape shape segment)]
+      (->> limits
+           (map (partial l/crop-segments segment))
+           (filter #(= 2 (count %)))))
+    []))
 
 (defn crop-segments-to-shape
   "Return the list of segments cropped to fit within the shape.
