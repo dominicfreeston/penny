@@ -1,25 +1,6 @@
 (ns penny.middleware
-  (:require [quil.core :as q]))
-
-(defn ^:private zp
-  "Zero-pad a string representing number n"
-  [n c]
-  (loop [s (str n)]
-    (if (< (.length s) c)
-      (recur (str "0" s))
-      s)))
-
-(defn current-time []
-  (str (q/year)
-       "-"
-       (zp (q/month) 2)
-       "-"
-       (zp (q/day) 2)
-       "-"
-       (zp (q/hour) 2)
-       (zp (q/minute) 2)
-       "-"
-       (zp (q/seconds) 2)))
+  (:require [quil.core :as q]
+            [penny.utils :as u]))
 
 (def ^:private  mpressed (atom false))
 
@@ -31,7 +12,7 @@
      (reset! mpressed false)))
 
 (defmacro export [draw]
-  `(let [time# (current-time)
+  `(let [time# (u/timestamp)
          gr# (q/create-graphics (q/width) (q/height) :svg (str "output/svg/" time# ".svg"))]
      (q/save (str "output/png/" time# ".png"))
      (q/with-graphics gr#
