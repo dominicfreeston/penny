@@ -80,8 +80,10 @@
 (defn cross-point-ll
   ;; http://mathworld.wolfram.com/Line-LineIntersection.html
   "Calculates whether and were two (infinite) lines cross"
-  [[[x1 y1] [x2 y2]] [[x3 y3] [x4 y4]]]
-  (let [denom (det (- x1 x2) (- y1 y2)
+  [line1 line2]
+  (let [[[x1 y1] [x2 y2]] line1
+        [[x3 y3] [x4 y4]] line2
+        denom (det (- x1 x2) (- y1 y2)
                    (- x3 x4) (- y3 y4))]
     (if (zero? denom)
       nil
