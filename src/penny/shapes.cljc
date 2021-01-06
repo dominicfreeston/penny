@@ -1,5 +1,6 @@
 (ns penny.shapes
-  (:require [penny.vectormath :as v]
+  (:require [quil.core :as q]
+            [penny.vectormath :as v]
             [penny.lines :as l]))
 
 ;; Shapes are simply defined as a vector of points
@@ -9,6 +10,30 @@
 
 (def ^:private x first)
 (def ^:private y second)
+
+;; Polygon builders
+;;;;;;;;;;;;;;;;;;;
+
+(defn- circle-point
+  "Returns point at angle a with radius r around the origin"
+  [a r]
+  [(* r (q/sin a))
+   (* r (q/cos a))])
+
+(defn cyclic-polygon
+  "Returns a cyclic polygon made of the points at angles in a circle of radius r around the origin"
+  [angles r]
+  (map #(circle-point % r) angles))
+
+(defn regular-polygon
+  "Returns a polygon with n equal sides within a circle of radius r around the origin with optional rotation rot"
+  ([n r rot]
+   (cyclic-polygon (range rot (+ rot q/TWO-PI) (/ q/TWO-PI n)) r))
+  ([n r]
+   (regular-polygon n r 0))
+  ([n]
+   (regular-polygon n 1)))
+
 
 (defn shape-to-segments
   "Converts a series of points into a series of segments representing the closed shape"
