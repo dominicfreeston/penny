@@ -61,3 +61,27 @@
     [[0 0] [0 1]]
     [[1 0] [1 1]]
     ))
+
+
+(deftest point-to-line
+  (are [point line result]
+      (= result (l/point-to-line line point))
+    [10 0]
+    [[0 0] [0 10]]
+    [[10 0] [0 0]]
+
+    [10 -1]
+    [[0 0] [0 10]]
+    [[10 -1] [0 -1]]))
+
+(deftest point-to-segment
+  (are [point line result]
+      (= result (l/point-to-segment line point))
+    [10 0]
+    [[0 0] [0 10]]
+    [[10 0] [0 0]]
+
+    [10 -1]
+    [[0 0] [0 10]]
+    [[10 -1] [0 0]]
+    ))

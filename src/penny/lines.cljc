@@ -113,4 +113,25 @@
       point)))
 
 
+;; Points/Distance
 
+(defn- perp [[x y]]
+  [y (- x)])
+
+(defn length [line]
+  (apply v/dist line))
+
+(defn point-to-line
+  "Returns the shortest segment joining the point to the line"
+  [line point]
+  (let [l [point (v/add point (perp (apply v/sub line)))]]
+    [point (cross-point-ll line l)]))
+
+(defn point-to-segment
+  "Returns the shortest segment joining the point to the segment"
+  [segment point]
+  (if-let [cp (cross-point-ls
+               [point (v/add point (perp (apply v/sub segment)))]
+               segment)]
+    [point cp]
+    (min-key length [point (first segment)] [point (second segment)])))
