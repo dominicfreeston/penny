@@ -105,6 +105,42 @@
   [shape p] (or (not= 0 (winding-number shape p))
                 (some #(l/point-on-segment? % p) (shape-to-segments shape))))
 
+;; Splitting a shape
+
+;; https://web.archive.org/web/20200122185639/https://geidav.wordpress.com/2015/03/21/splitting-an-arbitrary-polygon-by-a-line/
+
+
+(defn split-shape-with-line
+  "Returns a list of shapes by splitting shape with line.
+  (Currently only works with concave polygons)"
+  [shape line]
+
+  (let [l (line-cross-points-through-shape shape line)]
+    (assert (= 2 (count l)) "multiple point means not convex")
+    (loop [s1 [] s2 [] s shape prev-p nil cross-count 0]
+      (if (empty? s)
+        (if (< cross-count 2)
+          (let [i (l/cross-point-ll l [prev-p (first shape)])]
+            (recur (conj s1 i) (conj s2 i) s i 2))
+          (filter #(>= (count %) 3) [(dedupe s1) (dedupe s2)]))
+        (let [p (first s)
+              side (l/point-on-line-side l p)]
+          (cond
+            (neg? side)
+            (if (or (nil? prev-p) (neg? (l/point-on-line-side l prev-p)))
+              (recur (conj s1 p) s2 (rest s) p cross-count)
+              (let [i (l/cross-point-ll l [prev-p p])]
+                (recur (conj s1 i p) (conj s2 i) (rest s) p (inc cross-count))))
+            
+            (pos? side)
+            (if (or (nil? prev-p) (pos? (l/point-on-line-side l prev-p)))
+              (recur s1 (conj s2 p) (rest s) p cross-count)
+              (let [i (l/cross-point-ll l [prev-p p])]
+                (recur (conj s1 i) (conj s2 i p) (rest s) p (inc cross-count))))
+            
+            (zero? side)
+            (recur (conj s1 p) (conj s2 p) (rest s) p cross-count)))))))
+
 ;; Cropping Line/Segment to fit inside a shape
 
 (defn- segment-in-shape?
@@ -118,7 +154,7 @@
 (defn segments-in-shape
   "Return a list of all the line segments inside shape"
   ;; It finds all the cross points, pairs them up, then checks
-  ;; they are actually inside (which is necessary to suport convex polygons)
+  ;; they are actually inside (which is necessary to support convex polygons)
   [shape line]
   (->> (line-cross-points-through-shape shape line)
        (sort-by (partial v/dist (first line)))

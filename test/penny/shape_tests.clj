@@ -78,3 +78,16 @@
         [[0 0] [1 1]]
         [[1 1] [2 2]]
         [[0 8] [1 6]]))))
+
+(deftest split-shape-with-line
+  (testing "where the line goes through the shape:"
+    (testing "square box"
+      (let [shape [[0 0] [0 10] [10 10] [10 0]]]
+        (are [line results] (= results (s/split-shape-with-line shape line))
+          [[0 0] [5 5]]
+          [[[0 0] [10 10] [10 0]] [[0 0] [0 10] [10 10]]])))
+    (testing "triangle"
+      (let [shape [[0 0] [10 10] [10 0]]]
+        (are [line results] (= results (s/split-shape-with-line shape line))
+          [[0 0] [10 5]]
+          [[[0 0] [10 5] [10 0]] [[0 0] [10 10] [10 5]]])))))
