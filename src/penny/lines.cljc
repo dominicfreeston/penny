@@ -53,6 +53,7 @@
   (v/norm (v/sub p2 p1)))
 
 ;; Splitting
+;;;;;;;;;;;;
 
 (defn points-along-line
   "Returns an infinite sequence of all the points on a line"
@@ -67,6 +68,7 @@
               (points-along-line (first segment) (unit segment) gap)))
 
 ;; Overlapping
+;;;;;;;;;;;;;;
 
 (defn crop-segments
   "Returns a segment that is the overlapping part of both segments,
@@ -76,6 +78,7 @@
                     (filter (partial contains-point? segment2) segment1))))
 
 ;; Crossing
+;;;;;;;;;;;
 
 (defn cross-point-ll
   ;; http://mathworld.wolfram.com/Line-LineIntersection.html
@@ -114,6 +117,7 @@
 
 
 ;; Points/Distance
+;;;;;;;;;;;;;;;;;;
 
 (defn- perp [[x y]]
   [y (- x)])
@@ -135,3 +139,41 @@
                segment)]
     [point cp]
     (min-key length [point (first segment)] [point (second segment)])))
+
+;; Dashed
+;;;;;;;;;
+
+(defn dashed
+  "Returns a sequence of segments matching the pattern,
+  following the polyline, where the pattern is [on off &patterns]"
+  [polyline pattern]
+  (loop [s polyline
+         [on off] (take 2 pattern)
+         p (rest (cycle (partition 2 2 0 pattern)))
+         res []]
+    (if (empty? (rest s))
+      res
+      (let [start (first s)
+            limit (second s)
+            len (v/dist start limit)
+            norm (unit [start limit])]
+        (if (> on 0)
+          ;; line
+          (if (> len on)
+            (recur (cons (v/add start (v/mult norm on)) (rest s))
+                   [0 off] p
+                   (conj res [start (v/add start (v/mult norm on))]))
+            
+            (recur (rest s)
+                   [(- on len) off] p
+                   (conj res [start limit])))
+          ;; gap
+          (if (> len off)
+            (recur (cons (v/add start (v/mult norm off)) (rest s))
+                   (first p) (rest p)
+                   res)
+
+            (recur (rest s)
+                   [0 (- off len)] p
+                   res)))))))
+
