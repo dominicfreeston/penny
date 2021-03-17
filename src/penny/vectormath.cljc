@@ -1,5 +1,25 @@
-(ns penny.vectormath
-  (:require [quil.core :as q]))
+(ns penny.vectormath)
+
+;; Math
+
+(def PI
+  #?(:clj Math/PI
+     :cljs js/Math.PI))
+
+(defn sin [x]
+  #?(:clj  (Math/sin x)
+     :cljs (js/Math.sin x)))
+
+(defn cos [x]
+  #?(:clj  (Math/cos x)
+     :cljs (js/Math.cos x)))
+
+(defn sqrt [x]
+  #?(:clj  (Math/sqrt x)
+     :cljs (js/Math.sqrt x)))
+
+(defn sq [x]
+  (* x x))
 
 ;; Vectors
 
@@ -15,8 +35,14 @@
 (defn div [v m]
   (mapv #(/ % m) v))
 
+(defn dist [src dest]
+  (->> (sub dest src)
+       (map sq)
+       (reduce +)
+       sqrt))
+
 (defn mag [v]
-  (apply q/mag v))
+  (dist (repeat 0) v))
 
 (defn norm [v]
   (let [m (mag v)]
@@ -30,9 +56,6 @@
 (defn dir [src dest]
   (norm (sub dest src)))
 
-(defn dist [src dest]
-  (mag (sub dest src)))
-
 (defn rotate [[x y] angle]
-  [(- (* x (q/cos angle)) (* y (q/sin angle)))
-   (+ (* x (q/sin angle)) (* y (q/cos angle)))])
+  [(- (* x (cos angle)) (* y (sin angle)))
+   (+ (* x (sin angle)) (* y (cos angle)))])
