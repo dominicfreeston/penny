@@ -4,7 +4,7 @@
 ;; Lines/segments are represented by pairs of points
 ;; Where points are vectors of the form [x y]
 ;; When treated as lines, they are considered to be infinite
-;; and so the distance between them in inconsequential
+;; and so the distance between them is inconsequential
 
 ;; Helpers
 

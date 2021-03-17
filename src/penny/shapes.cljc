@@ -1,9 +1,8 @@
 (ns penny.shapes
-  (:require [quil.core :as q]
-            [penny.vectormath :as v]
+  (:require [penny.vectormath :as v]
             [penny.lines :as l]))
 
-;; Shapes are simply defined as a vector of points
+;; Shapes are simply defined as a vector of points (like polylines)
 ;; Where points are vectors of the form [x y]
 ;; With the assumptions that they are joined by straight lines through the sequence
 ;; And will be closed by joining the last point with the first
@@ -17,23 +16,27 @@
 (defn- circle-point
   "Returns point at angle a with radius r around the origin"
   [a r]
-  [(* r (q/sin a))
-   (* r (q/cos a))])
+  [(* r (v/sin a))
+   (* r (v/cos a))])
 
 (defn cyclic-polygon
   "Returns a cyclic polygon made of the points at angles in a circle of radius r around the origin"
   [angles r]
   (map #(circle-point % r) angles))
 
+(def ^:private TWO-PI (* 2 v/PI))
+
 (defn regular-polygon
   "Returns a polygon with n equal sides within a circle of radius r around the origin with optional rotation rot"
   ([n r rot]
-   (cyclic-polygon (range rot (+ rot q/TWO-PI) (/ q/TWO-PI n)) r))
+   (cyclic-polygon (range rot (+ rot TWO-PI) (/ TWO-PI n)) r))
   ([n r]
    (regular-polygon n r 0))
   ([n]
    (regular-polygon n 1)))
 
+;; Helpers
+;;;;;;;;;;
 
 (defn shape-to-segments
   "Converts a series of points into a series of segments representing the closed shape"
@@ -54,9 +57,6 @@
 
 (defn box
   "Returns the bounding box of the shape"
-  ;; Once upon a time this was enlarged by 1px
-  ;; but that seemed wrong an assumption to make everywhere
-  ;; However there may be some edge-cases no longer handled
   ([shape]
    (box shape [0 0]))
   ([shape insets]
@@ -123,6 +123,7 @@
           (let [i (l/cross-point-ll l [prev-p (first shape)])]
             (recur (conj s1 i) (conj s2 i) s i 2))
           (filter #(>= (count %) 3) [(dedupe s1) (dedupe s2)]))
+        
         (let [p (first s)
               side (l/point-on-line-side l p)]
           (cond
