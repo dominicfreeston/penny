@@ -1,6 +1,32 @@
 (ns penny.shape-tests
   (:require  [clojure.test :refer :all]
-             [penny.shapes :as s]))
+             [penny.shapes :as s]
+             [penny.vectormath :as v]
+             [penny.lines :as l]))
+
+(defn equalish
+  ([epsilon]
+   true)
+  ([epsilon x]
+   true)
+  ([epsilon x y]
+   (<= (Math/abs (- x y)) epsilon))
+  ([epsilon x y & more]
+   (if (equalish epsilon x y)
+     (if (next more)
+       (recur epsilon y (first more) (next more))
+       (equalish epsilon y (first more)))
+     false))
+  )
+
+(deftest regular-polygon
+  (testing "number of sides"
+    (doseq [i (range 3 100)]
+      (is (= i (count (s/regular-polygon i))))))
+  (testing "length of sides"
+    (doseq [i (range 3 100)]
+      (let [segments (s/shape-to-segments (s/regular-polygon i))]
+        (is (apply equalish 1e-10 (map (partial apply v/dist) segments)))))))
 
 (def concave-polygon
   ;; |--

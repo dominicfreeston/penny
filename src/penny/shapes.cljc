@@ -29,7 +29,7 @@
 (defn regular-polygon
   "Returns a polygon with n equal sides within a circle of radius r around the origin with optional rotation rot"
   ([n r rot]
-   (cyclic-polygon (range rot (+ rot TWO-PI) (/ TWO-PI n)) r))
+   (cyclic-polygon (take n (range rot (+ rot TWO-PI) (/ TWO-PI n))) r))
   ([n r]
    (regular-polygon n r 0))
   ([n]
