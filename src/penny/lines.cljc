@@ -149,7 +149,7 @@
   [polyline pattern]
   (loop [s polyline
          [on off] (take 2 pattern)
-         p (rest (cycle (partition 2 2 0 pattern)))
+         p (rest (cycle (partition 2 2 (repeat 0) pattern)))
          res []]
     (if (empty? (rest s))
       res
@@ -163,7 +163,7 @@
             (recur (cons (v/add start (v/mult norm on)) (rest s))
                    [0 off] p
                    (conj res [start (v/add start (v/mult norm on))]))
-            
+
             (recur (rest s)
                    [(- on len) off] p
                    (conj res [start limit])))
